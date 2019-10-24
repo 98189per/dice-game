@@ -3,11 +3,20 @@
 #include <string.h>
 #include <wchar.h>
 
+#define ID_PLAYER1SCORE 1
+#define ID_PLAYER2SCORE 2
+#define ID_PLAYER1ROLL 3
+#define ID_PLAYER1END 4
+#define ID_PLAYER2ROLL 5
+#define ID_PLAYER2END 6
+#define ID_TEXTBOX 7
+
+
 using namespace std;
 
-static LPCWSTR szWindowClass = L"AppTitle";
+static LPCSTR szWindowClass = "AppTitle";
 
-static LPCWSTR szTitle = L"Dice Game";
+static LPCSTR szTitle = "Dice Game";
 
 HINSTANCE hInst;
 
@@ -51,7 +60,7 @@ int CALLBACK WinMain(
 		szTitle,
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		600, 950,
+		920, 640,
 		NULL,
 		NULL,
 		hInstance,
@@ -80,29 +89,107 @@ int CALLBACK WinMain(
 }
 
 HWND hwnd1score;
+HWND hwnd2score;
+HWND hwnd1roll;
+HWND hwnd1end;
+HWND hwnd2roll;
+HWND hwnd2end;
+HWND hwndText;
+RECT rc;
+int playerTurn = 1;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT ps;
 	HDC hdc;
 
 	switch (message) {
-	case WM_CREATE:
-        hwnd1score = CreateWindowW(
-            L"STATIC", L"Player 1",
-            WS_CHILD | WS_VISIBLE | SS_CENTER | SS_CENTERIMAGE,
-            10, 10, 110, 580,
-            hwnd,
-            NULL,
-            NULL,
-            NULL);
+	case WM_CREATE: 
+		hwnd1score = CreateWindowW(
+			L"STATIC", L"Player 1",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER | SS_CENTERIMAGE,
+			50, 50, 350, 100,
+			hwnd,
+			(HMENU)ID_PLAYER1SCORE,
+			NULL,
+			NULL);
+		hwnd2score = CreateWindowW(
+			L"STATIC", L"Player 2",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER | SS_CENTERIMAGE,
+			500, 50, 350, 100,
+			hwnd,
+			(HMENU)ID_PLAYER2SCORE,
+			NULL,
+			NULL);
+		hwnd1roll = CreateWindowW(
+			L"BUTTON", L"Roll die / Flip coin",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER,
+			50, 200, 150, 100,
+			hwnd,
+			(HMENU)ID_PLAYER1ROLL,
+			NULL,
+			NULL);
+		hwnd1end = CreateWindowW(
+			L"BUTTON", L"End turn",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER,
+			250, 200, 150, 100,
+			hwnd,
+			(HMENU)ID_PLAYER1END,
+			NULL,
+			NULL);
+		hwnd2roll = CreateWindowW(
+			L"BUTTON", L"Roll die / Flip coin",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER,
+			500, 200, 150, 100,
+			hwnd,
+			(HMENU)ID_PLAYER2ROLL,
+			NULL,
+			NULL);
+		hwnd2end = CreateWindowW(
+			L"BUTTON", L"End turn",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER,
+			700, 200, 150, 100,
+			hwnd,
+			(HMENU)ID_PLAYER2END,
+			NULL,
+			NULL);
+		hwndText = CreateWindowW(
+			L"STATIC", L"Game text",
+			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER | SS_CENTERIMAGE,
+			50, 350, 800, 200,
+			hwnd,
+			(HMENU)ID_TEXTBOX,
+			NULL,
+			NULL);
 		break;
 	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		case ID_PLAYER1END:
+			if (playerTurn == 1) {
+				playerTurn++;
+				MessageBoxW(hwnd, L"clicked 1", 0LL, 0LL);
+			}
+			break;
+		case ID_PLAYER2END:
+			if (playerTurn == 2) {
+				playerTurn--;
+				MessageBoxW(hwnd, L"clicked 2", 0LL, 0LL);
+			}
+			break;
+		case ID_PLAYER1ROLL:
+			break;
+		case ID_PLAYER2ROLL:
+			break;
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hwnd, &ps);
 
 		EndPaint(hwnd, &ps);
 		break;
+	/*case WM_ERASEBKGND:
+		hdc = (HDC)wParam;
+		SetRect(&rc, 50, 350, 800, 200);
+		FillRect(hdc, &rc, CreateSolidBrush(RGB(0, 255, 0)));
+		break;*/
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
