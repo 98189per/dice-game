@@ -152,7 +152,7 @@ HRESULT DemoApp::Initialize()
 	memset(&A, 0, sizeof(A));
 	for (k = 0; k <= 8; k += 1)
 	{
-		wcscpy(A, (wchar_t*)Planets[k]);
+		wcscpy_s(A, (wchar_t*)Planets[k]);
 
 		// Add string to combobox.
 		SendMessage(hWndComboBox, (UINT)CB_ADDSTRING, (WPARAM)0, (LPARAM)A);
