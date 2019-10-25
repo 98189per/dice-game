@@ -1,7 +1,12 @@
+#define NOMINMAX
+
 #include <windows.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <time.h>
+#include <algorithm>
+#include <sstream>
 
 #define ID_PLAYER1SCORE 1
 #define ID_PLAYER2SCORE 2
@@ -79,6 +84,8 @@ int CALLBACK WinMain(
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
+	srand(time(NULL));
+
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
@@ -96,11 +103,80 @@ HWND hwnd2roll;
 HWND hwnd2end;
 HWND hwndText;
 RECT rc;
+char text[100];
 int playerTurn = 1;
+static int player1score = 0;
+static int player2score = 0;
+
+class Data {
+public:
+	//int player1score = 0;
+	//int player2score = 0;
+	int diceRoll1, diceRoll2, coinFlip;
+	void reset() {
+		player1score = 0;
+		player2score = 0;
+	}
+	int Roll(int playerTag) {
+		diceRoll1 = rand() % 6 + 1;
+		diceRoll2 = rand() % 6 + 1;
+		coinFlip = rand() % 2 + 1;
+
+		if (diceRoll1 % 2 == 0 && diceRoll2 % 2 == 0) {
+			if (coinFlip == 1) {
+				if (playerTag == 1)
+					player1score += diceRoll1 + diceRoll2;
+				else
+					player2score += diceRoll1 + diceRoll2;
+				return diceRoll1 + diceRoll2;
+			}
+			else {
+				if (playerTag == 1)
+					player1score += diceRoll1 * diceRoll2;
+				else
+					player2score += diceRoll1 * diceRoll2;
+				return diceRoll1 * diceRoll2;
+			}
+		}
+		else if (diceRoll1 % 2 == 1 && diceRoll2 % 2 == 1) {
+			if (coinFlip == 1) {
+				if (playerTag == 1)
+					player1score += 2 * std::max(diceRoll1, diceRoll2);
+				else
+					player2score += 2 * std::max(diceRoll1, diceRoll2);
+				return 2 * std::max(diceRoll1, diceRoll2);
+			}
+			else {
+				if (playerTag == 1)
+					player1score += 2 * std::min(diceRoll1, diceRoll2);
+				else
+					player2score += 2 * std::min(diceRoll1, diceRoll2);
+				return 2 * std::min(diceRoll1, diceRoll2);
+			}
+		}
+		else {
+			if (coinFlip == 1) {
+				if (playerTag == 1)
+					player1score += 2 * (diceRoll1 + diceRoll2);
+				else
+					player2score += 2 * (diceRoll1 + diceRoll2);
+				return 2 * (diceRoll1 + diceRoll2);
+			}
+			else {
+				if (playerTag == 1)
+					player1score += 2 * (diceRoll1 * diceRoll2);
+				else
+					player2score += 2 * (diceRoll1 * diceRoll2);
+				return 2 * (diceRoll1 * diceRoll2);
+			}
+		}
+	}
+};
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT ps;
 	HDC hdc;
+	Data data;
 
 	switch (message) {
 	case WM_CREATE: 
@@ -162,23 +238,92 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			NULL);
 		break;
 	case WM_COMMAND:
-		switch (LOWORD(wParam))
+		switch (LOWORD(wParam)) {
 		case ID_PLAYER1END:
 			if (playerTurn == 1) {
 				playerTurn++;
-				MessageBoxW(hwnd, L"clicked 1", 0LL, 0LL);
+				MessageBoxW(hwnd, L"It's now Player 2's turn", 0LL, 0LL);
 			}
 			break;
 		case ID_PLAYER2END:
 			if (playerTurn == 2) {
 				playerTurn--;
-				MessageBoxW(hwnd, L"clicked 2", 0LL, 0LL);
+				MessageBoxW(hwnd, L"It's now Player 1's turn", 0LL, 0LL);
 			}
 			break;
 		case ID_PLAYER1ROLL:
+			if (playerTurn == 1) {
+				char roll[10], die1[10], die2[10], coin[10], score[10];
+				wchar_t temp[100];
+				sprintf(roll, "%d", data.Roll(playerTurn));
+				sprintf(die1, "%d", data.diceRoll1);
+				sprintf(die2, "%d", data.diceRoll2);
+				sprintf(score, "%d", player1score);
+				if (data.coinFlip == 1)
+					strcpy(coin, "Heads");
+				else
+					strcpy(coin, "Tails");
+				strcpy(text, "Player 1 got ");
+				strcat(text, roll);
+				strcat(text, " because they rolled a ");
+				strcat(text, die1);
+				strcat(text, " and ");
+				strcat(text, die2);
+				strcat(text, " and flipped ");
+				strcat(text, coin);
+				std::mbstowcs(temp, text, strlen(text) + 1);
+				SetWindowTextW(hwndText, temp);
+				strcpy(text, "Player 1 - Score: ");
+				strcat(text, score);
+				std::mbstowcs(temp, text, strlen(text) + 1);
+				SetWindowTextW(hwnd1score, temp);
+				if (player1score > 50) {
+					MessageBoxW(hwnd, L"Uh oh! Player 1 has bust, Player 2 wins this round", 0LL, 0LL);
+					SetWindowTextW(hwnd1score, L"Player 1");
+					SetWindowTextW(hwnd2score, L"Player 2");
+					SetWindowTextW(hwndText, L"Game text");
+					playerTurn = 1;
+					data.reset();
+				}
+			}
 			break;
 		case ID_PLAYER2ROLL:
+			if (playerTurn == 2) {
+				char roll[10], die1[10], die2[10], coin[10], score[10];
+				wchar_t temp[100];
+				sprintf(roll, "%d", data.Roll(playerTurn));
+				sprintf(die1, "%d", data.diceRoll1);
+				sprintf(die2, "%d", data.diceRoll2);
+				sprintf(score, "%d", player2score);
+				if (data.coinFlip == 1)
+					strcpy(coin, "Heads");
+				else
+					strcpy(coin, "Tails");
+				strcpy(text, "Player 1 got ");
+				strcat(text, roll);
+				strcat(text, " because they rolled a ");
+				strcat(text, die1);
+				strcat(text, " and ");
+				strcat(text, die2);
+				strcat(text, " and flipped ");
+				strcat(text, coin);
+				std::mbstowcs(temp, text, strlen(text) + 1);
+				SetWindowTextW(hwndText, temp);
+				strcpy(text, "Player 2 - Score: ");
+				strcat(text, score);
+				std::mbstowcs(temp, text, strlen(text) + 1);
+				SetWindowTextW(hwnd2score, temp);
+				if (player2score > 50) {
+					MessageBoxW(hwnd, L"Uh oh! Player 2 has bust, Player 1 wins this round", 0LL, 0LL);
+					SetWindowTextW(hwnd1score, L"Player 1");
+					SetWindowTextW(hwnd2score, L"Player 2");
+					SetWindowTextW(hwndText, L"Game text");
+					playerTurn = 1;
+					data.reset();
+				}
+			}
 			break;
+		}
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hwnd, &ps);
