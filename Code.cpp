@@ -15,6 +15,10 @@
 #define ID_PLAYER2ROLL 5
 #define ID_PLAYER2END 6
 #define ID_TEXTBOX 7
+#define IDM_GAME_RESTART 8
+#define IDM_CONFIGURE_MENU 9
+#define IDM_HELP_MENU 10
+#define IDM_GAME_EXIT 11
 
 
 using namespace std;
@@ -93,6 +97,30 @@ int CALLBACK WinMain(
 	}
 
 	return (int)msg.wParam;
+}
+
+void AddMenus(HWND hwnd) {
+
+	HMENU hmenubar;
+	HMENU hgame;
+	HMENU hconfigure;
+	HMENU hhelp;
+
+	hmenubar = CreateMenu();
+	hgame = CreateMenu();
+	hconfigure = CreateMenu();
+	hhelp = CreateMenu();
+
+	AppendMenuW(hgame, MF_STRING, IDM_GAME_RESTART, L"Restart");
+	AppendMenuW(hgame, MF_SEPARATOR, 0, NULL);
+	AppendMenuW(hgame, MF_STRING, IDM_GAME_EXIT, L"Exit");
+	AppendMenuW(hconfigure, MF_STRING, IDM_CONFIGURE_MENU, L"Configure");
+	AppendMenuW(hhelp, MF_STRING, IDM_HELP_MENU, L"Help");
+
+	AppendMenuW(hmenubar, MF_POPUP, (UINT_PTR)hgame, L"Game");
+	AppendMenuW(hmenubar, MF_POPUP, (UINT_PTR)hconfigure, L"Configure");
+	AppendMenuW(hmenubar, MF_POPUP, (UINT_PTR)hhelp, L"Help");
+	SetMenu(hwnd, hmenubar);
 }
 
 HWND hwnd1score;
@@ -236,19 +264,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			(HMENU)ID_TEXTBOX,
 			NULL,
 			NULL);
+		AddMenus(hwnd);
 		break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case ID_PLAYER1END:
 			if (playerTurn == 1) {
 				playerTurn++;
-				MessageBoxW(hwnd, L"It's now Player 2's turn", 0LL, 0LL);
+				MessageBoxW(hwnd, L"It's now Player 2's turn", L"Change turn", 0LL);
 			}
 			break;
 		case ID_PLAYER2END:
 			if (playerTurn == 2) {
 				playerTurn--;
-				MessageBoxW(hwnd, L"It's now Player 1's turn", 0LL, 0LL);
+				MessageBoxW(hwnd, L"It's now Player 1's turn", L"Change turn", 0LL);
 			}
 			break;
 		case ID_PLAYER1ROLL:
@@ -278,7 +307,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				std::mbstowcs(temp, text, strlen(text) + 1);
 				SetWindowTextW(hwnd1score, temp);
 				if (player1score > 50) {
-					MessageBoxW(hwnd, L"Uh oh! Player 1 has bust, Player 2 wins this round", 0LL, 0LL);
+					MessageBoxW(hwnd, L"Uh oh! Player 1 has bust, Player 2 wins this round", L"Next round", 0LL);
 					SetWindowTextW(hwnd1score, L"Player 1");
 					SetWindowTextW(hwnd2score, L"Player 2");
 					SetWindowTextW(hwndText, L"Game text");
@@ -299,7 +328,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 					strcpy(coin, "Heads");
 				else
 					strcpy(coin, "Tails");
-				strcpy(text, "Player 1 got ");
+				strcpy(text, "Player 2 got ");
 				strcat(text, roll);
 				strcat(text, " because they rolled a ");
 				strcat(text, die1);
@@ -314,7 +343,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				std::mbstowcs(temp, text, strlen(text) + 1);
 				SetWindowTextW(hwnd2score, temp);
 				if (player2score > 50) {
-					MessageBoxW(hwnd, L"Uh oh! Player 2 has bust, Player 1 wins this round", 0LL, 0LL);
+					MessageBoxW(hwnd, L"Uh oh! Player 2 has bust, Player 1 wins this round", L"Next round", 0LL);
 					SetWindowTextW(hwnd1score, L"Player 1");
 					SetWindowTextW(hwnd2score, L"Player 2");
 					SetWindowTextW(hwndText, L"Game text");
@@ -323,6 +352,37 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				}
 			}
 			break;
+		case IDM_GAME_RESTART:
+			SetWindowTextW(hwnd1score, L"Player 1");
+			SetWindowTextW(hwnd2score, L"Player 2");
+			SetWindowTextW(hwndText, L"Game text");
+			playerTurn = 1;
+			data.reset();
+			break;
+		case IDM_GAME_EXIT:
+			PostQuitMessage(0);
+			break;
+		case IDM_CONFIGURE_MENU:
+			MessageBoxW(hwnd, L"Not yet coded...", 0LL, 0LL);
+			break;
+		case IDM_HELP_MENU:
+			switch (rand() % 5 + 1) {
+			case 1:
+				MessageBoxW(hwnd, L"Zzz... Zzz...", L"Personal Assistant", 0LL);
+				break;
+			case 2:
+				MessageBoxW(hwnd, L"Figure it out yourself!!!", L"Personal Assistant", 0LL);
+				break;
+			case 3:
+				MessageBoxW(hwnd, L"I'm going to sleep...", L"Personal Assistant", 0LL);
+				break;
+			case 4:
+				MessageBoxW(hwnd, L"It's really not that difficult...", L"Personal Assistant", 0LL);
+				break;
+			case 5:
+				MessageBoxW(hwnd, L"Just Google it or something!!!", L"Personal Assistant", 0LL);
+				break;
+			}
 		}
 		break;
 	case WM_PAINT:
