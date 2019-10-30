@@ -1,5 +1,5 @@
 #define NOMINMAX
-
+//include header files
 #include <windows.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <sstream>
 
+//define text macros for switch cases
 #define ID_PLAYER1SCORE 1
 #define ID_PLAYER2SCORE 2
 #define ID_PLAYER1ROLL 3
@@ -20,17 +21,17 @@
 #define IDM_HELP_MENU 10
 #define IDM_GAME_EXIT 11
 
-
 using namespace std;
 
 static LPCSTR szWindowClass = "AppTitle";
 
-static LPCSTR szTitle = "Dice Game";
+static LPCSTR szTitle = "Dice Game";//window title
 
 HINSTANCE hInst;
 
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);//forward declaration of window processing fuction
 
+//main window preproccessing
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -38,6 +39,7 @@ int CALLBACK WinMain(
 	_In_ int       nCmdShow
 )
 {
+	//window graphical properties
 	WNDCLASSEX wc;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -60,10 +62,11 @@ int CALLBACK WinMain(
 			0LL);
 
 		return 1;
-	}
+	}//error handling
 
 	HINSTANCE hIsnt = hInstance;
 
+	//create main window
 	HWND hwnd = CreateWindow(
 		szWindowClass,
 		szTitle,
@@ -83,22 +86,23 @@ int CALLBACK WinMain(
 			0LL);
 
 		return 1;
-	}
+	}//error handling
 
 	ShowWindow(hwnd, nCmdShow);
-	UpdateWindow(hwnd);
+	UpdateWindow(hwnd);//update main window
 
-	srand(time(NULL));
+	srand(time(NULL));//seed random
 
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-	}
+	}//basic message processing loop
 
 	return (int)msg.wParam;
 }
 
+//user-defined function to add menubar
 void AddMenus(HWND hwnd) {
 
 	HMENU hmenubar;
@@ -123,6 +127,7 @@ void AddMenus(HWND hwnd) {
 	SetMenu(hwnd, hmenubar);
 }
 
+//define variables and structs
 HWND hwnd1score;
 HWND hwnd2score;
 HWND hwnd1roll;
@@ -136,16 +141,18 @@ int playerTurn = 1;
 static int player1score = 0;
 static int player2score = 0;
 
+//class for storing player data
 class Data {
 public:
 	//int player1score = 0;
 	//int player2score = 0;
-	int diceRoll1, diceRoll2, coinFlip;
+	int diceRoll1, diceRoll2, coinFlip;//public class variables
 	void reset() {
 		player1score = 0;
 		player2score = 0;
-	}
+	}//reset player scores
 	int Roll(int playerTag) {
+		//assign random value between range
 		diceRoll1 = rand() % 6 + 1;
 		diceRoll2 = rand() % 6 + 1;
 		coinFlip = rand() % 2 + 1;
@@ -153,61 +160,63 @@ public:
 		if (diceRoll1 % 2 == 0 && diceRoll2 % 2 == 0) {
 			if (coinFlip == 1) {
 				if (playerTag == 1)
-					player1score += diceRoll1 + diceRoll2;
+					player1score += diceRoll1 + diceRoll2;//even dice and heads for player 1
 				else
-					player2score += diceRoll1 + diceRoll2;
+					player2score += diceRoll1 + diceRoll2;//even dice and heads for player 2
 				return diceRoll1 + diceRoll2;
 			}
 			else {
 				if (playerTag == 1)
-					player1score += diceRoll1 * diceRoll2;
+					player1score += diceRoll1 * diceRoll2;//even dice and tails for player 1
 				else
-					player2score += diceRoll1 * diceRoll2;
+					player2score += diceRoll1 * diceRoll2;//even dice and tails for player 2
 				return diceRoll1 * diceRoll2;
 			}
 		}
 		else if (diceRoll1 % 2 == 1 && diceRoll2 % 2 == 1) {
 			if (coinFlip == 1) {
 				if (playerTag == 1)
-					player1score += 2 * std::max(diceRoll1, diceRoll2);
+					player1score += 2 * std::max(diceRoll1, diceRoll2);//one even dice and heads for player 1
 				else
-					player2score += 2 * std::max(diceRoll1, diceRoll2);
+					player2score += 2 * std::max(diceRoll1, diceRoll2);//one even dice and heads for player 2
 				return 2 * std::max(diceRoll1, diceRoll2);
 			}
 			else {
 				if (playerTag == 1)
-					player1score += 2 * std::min(diceRoll1, diceRoll2);
+					player1score += 2 * std::min(diceRoll1, diceRoll2);//one even dice and tails for player 1
 				else
-					player2score += 2 * std::min(diceRoll1, diceRoll2);
+					player2score += 2 * std::min(diceRoll1, diceRoll2);//one even dice and tails for player 2
 				return 2 * std::min(diceRoll1, diceRoll2);
 			}
 		}
 		else {
 			if (coinFlip == 1) {
 				if (playerTag == 1)
-					player1score += 2 * (diceRoll1 + diceRoll2);
+					player1score += 2 * (diceRoll1 + diceRoll2);//odd dice and heads for player 1
 				else
-					player2score += 2 * (diceRoll1 + diceRoll2);
+					player2score += 2 * (diceRoll1 + diceRoll2);//odd dice and heads for player 2
 				return 2 * (diceRoll1 + diceRoll2);
 			}
 			else {
 				if (playerTag == 1)
-					player1score += 2 * (diceRoll1 * diceRoll2);
+					player1score += 2 * (diceRoll1 * diceRoll2);//odd dice and tails for player 1
 				else
-					player2score += 2 * (diceRoll1 * diceRoll2);
+					player2score += 2 * (diceRoll1 * diceRoll2);//odd dice and tails for player 2
 				return 2 * (diceRoll1 * diceRoll2);
 			}
 		}
 	}
-};
+};//end class
 
+//main window processing function
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT ps;
 	HDC hdc;
-	Data data;
+	Data data;//initialize object
 
+	//switch based on message sent
 	switch (message) {
-	case WM_CREATE: 
+	case WM_CREATE: //sent when main window is created
 		hwnd1score = CreateWindowW(
 			L"STATIC", L"Player 1",
 			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_CENTER | SS_CENTERIMAGE,
@@ -264,26 +273,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			(HMENU)ID_TEXTBOX,
 			NULL,
 			NULL);
-		AddMenus(hwnd);
+		AddMenus(hwnd);//create buttons and textboxes, then call function to add menus
 		break;
-	case WM_COMMAND:
+	case WM_COMMAND: //sent when a button is clicked, etc...
+		//switch based on macro of button clicked
 		switch (LOWORD(wParam)) {
 		case ID_PLAYER1END:
 			if (playerTurn == 1) {
 				playerTurn++;
 				MessageBoxW(hwnd, L"It's now Player 2's turn", L"Change turn", 0LL);
-			}
+			}//switch turn
 			break;
 		case ID_PLAYER2END:
 			if (playerTurn == 2) {
 				playerTurn--;
 				MessageBoxW(hwnd, L"It's now Player 1's turn", L"Change turn", 0LL);
-			}
+			}//switch turn
 			break;
 		case ID_PLAYER1ROLL:
-			if (playerTurn == 1) {
-				char roll[10], die1[10], die2[10], coin[10], score[10];
+			if (playerTurn == 1) { //if it is player 1 turn
+				char roll[10], die1[10], die2[10], coin[10], score[10]; //initialize empty char arrays
 				wchar_t temp[100];
+				//concatenate game text box message
 				sprintf(roll, "%d", data.Roll(playerTurn));
 				sprintf(die1, "%d", data.diceRoll1);
 				sprintf(die2, "%d", data.diceRoll2);
@@ -301,11 +312,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				strcat(text, " and flipped ");
 				strcat(text, coin);
 				std::mbstowcs(temp, text, strlen(text) + 1);
-				SetWindowTextW(hwndText, temp);
+				SetWindowTextW(hwndText, temp);//set game text message
 				strcpy(text, "Player 1 - Score: ");
 				strcat(text, score);
 				std::mbstowcs(temp, text, strlen(text) + 1);
-				SetWindowTextW(hwnd1score, temp);
+				SetWindowTextW(hwnd1score, temp);//set player score message
 				if (player1score > 50) {
 					MessageBoxW(hwnd, L"Uh oh! Player 1 has bust, Player 2 wins this round", L"Next round", 0LL);
 					SetWindowTextW(hwnd1score, L"Player 1");
@@ -313,13 +324,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 					SetWindowTextW(hwndText, L"Game text");
 					playerTurn = 1;
 					data.reset();
-				}
+				}//if score > 50, send message
 			}
 			break;
 		case ID_PLAYER2ROLL:
-			if (playerTurn == 2) {
-				char roll[10], die1[10], die2[10], coin[10], score[10];
+			if (playerTurn == 2) { //if it is player 2 turn
+				char roll[10], die1[10], die2[10], coin[10], score[10];//initialize empty char arrays
 				wchar_t temp[100];
+				//concatenate game text box message
 				sprintf(roll, "%d", data.Roll(playerTurn));
 				sprintf(die1, "%d", data.diceRoll1);
 				sprintf(die2, "%d", data.diceRoll2);
@@ -337,11 +349,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				strcat(text, " and flipped ");
 				strcat(text, coin);
 				std::mbstowcs(temp, text, strlen(text) + 1);
-				SetWindowTextW(hwndText, temp);
+				SetWindowTextW(hwndText, temp);//set game text message
 				strcpy(text, "Player 2 - Score: ");
 				strcat(text, score);
 				std::mbstowcs(temp, text, strlen(text) + 1);
-				SetWindowTextW(hwnd2score, temp);
+				SetWindowTextW(hwnd2score, temp);//set player score message
 				if (player2score > 50) {
 					MessageBoxW(hwnd, L"Uh oh! Player 2 has bust, Player 1 wins this round", L"Next round", 0LL);
 					SetWindowTextW(hwnd1score, L"Player 1");
@@ -349,23 +361,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 					SetWindowTextW(hwndText, L"Game text");
 					playerTurn = 1;
 					data.reset();
-				}
+				}// if score > 50, send message
 			}
 			break;
-		case IDM_GAME_RESTART:
+		case IDM_GAME_RESTART: //if menu restart is clicked
 			SetWindowTextW(hwnd1score, L"Player 1");
 			SetWindowTextW(hwnd2score, L"Player 2");
 			SetWindowTextW(hwndText, L"Game text");
 			playerTurn = 1;
-			data.reset();
+			data.reset();//reset data
 			break;
-		case IDM_GAME_EXIT:
-			PostQuitMessage(0);
+		case IDM_GAME_EXIT: //if menu exit is clicked
+			PostQuitMessage(0); //exit message
 			break;
-		case IDM_CONFIGURE_MENU:
+		case IDM_CONFIGURE_MENU: //if menu configure is clicked
 			MessageBoxW(hwnd, L"Not yet coded...", 0LL, 0LL);
 			break;
-		case IDM_HELP_MENU:
+		case IDM_HELP_MENU: //if menu help is clicked
 			switch (rand() % 5 + 1) {
 			case 1:
 				MessageBoxW(hwnd, L"Zzz... Zzz...", L"Personal Assistant", 0LL);
@@ -382,23 +394,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			case 5:
 				MessageBoxW(hwnd, L"Just Google it or something!!!", L"Personal Assistant", 0LL);
 				break;
-			}
+			}//randomly generate 1 of 5 sarcastic help messages
 		}
 		break;
-	case WM_PAINT:
+	case WM_PAINT: //handles changes to window graphics
 		hdc = BeginPaint(hwnd, &ps);
-
+		//could not get to work
 		EndPaint(hwnd, &ps);
-		break;
-	/*case WM_ERASEBKGND:
+		break; //edit: I have figured it out now but im too lazy to go back and change stuff
+	/*case WM_ERASEBKGND: //im really not quite sure what this even does
 		hdc = (HDC)wParam;
 		SetRect(&rc, 50, 350, 800, 200);
 		FillRect(hdc, &rc, CreateSolidBrush(RGB(0, 255, 0)));
 		break;*/
-	case WM_DESTROY:
+	case WM_DESTROY: //when X is clicked in top right corner
 		PostQuitMessage(0);
 		break;
-	default:
+	default: //skip window processing
 		return DefWindowProc(hwnd, message, wParam, lParam);
 		break;
 	}
